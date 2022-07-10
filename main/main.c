@@ -243,14 +243,11 @@ void app_main(void)
       .hint_color = atoi(LOG_COLOR_CYAN)};
   ESP_ERROR_CHECK(esp_console_init(&console_config));
 
-  const char *prompt = CONFIG_IDF_TARGET "> ";
-
   linenoiseSetMultiLine(1);
   linenoiseHistorySetMaxLen(10);
 
   while (1)
   {
-    int status, result;
     lua_State *L = luaL_newstate(); /* create state */
     if (L == NULL)
     {
