@@ -260,8 +260,7 @@ void app_main(void)
     luaL_openlibs(L);           /* open standard libraries */
     lua_gc(L, LUA_GCGEN, 0, 0); /* GC in generational mode */
     doREPL(L);                  /* do read-eval-print loop */
+  error:
     lua_close(L);
   }
-error:
-  lua_close(L);
 }
