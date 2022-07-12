@@ -37,6 +37,8 @@ void init_console(void)
 
 void app_main(void)
 {
+  init_console();
+
   while (1)
   {
     lua_repl();
