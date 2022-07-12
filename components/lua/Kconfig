@@ -1,0 +1,7 @@
+menu "ESP-LUA"
+    config ESP_LUA_VERSION
+        string "Lua version"
+        default "5.4.4"
+        help
+            Set the Lua version to checkout an build.
+endmenu

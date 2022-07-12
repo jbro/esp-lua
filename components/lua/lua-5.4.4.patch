@@ -1,0 +1,90 @@
+diff --git a/lua.c b/lua.c
+index 0f190044..dc0b82cd 100644
+--- a/lua.c
++++ b/lua.c
+@@ -156,15 +156,15 @@ static int docall (lua_State *L, int narg, int nres) {
+   lua_pushcfunction(L, msghandler);  /* push message handler */
+   lua_insert(L, base);  /* put it under function and args */
+   globalL = L;  /* to be available to 'laction' */
+-  setsignal(SIGINT, laction);  /* set C-signal handler */
++  // setsignal(SIGINT, laction);  /* set C-signal handler */
+   status = lua_pcall(L, narg, nres, base);
+-  setsignal(SIGINT, SIG_DFL); /* reset C-signal handler */
++  // setsignal(SIGINT, SIG_DFL); /* reset C-signal handler */
+   lua_remove(L, base);  /* remove message handler from the stack */
+   return status;
+ }
+ 
+ 
+-static void print_version (void) {
++void print_version (void) {
+   lua_writestring(LUA_COPYRIGHT, strlen(LUA_COPYRIGHT));
+   lua_writeline();
+ }
+@@ -411,35 +411,11 @@ static int handle_luainit (lua_State *L) {
+ #endif				/* } */
+ 
+ 
+-/*
+-** lua_readline defines how to show a prompt and then read a line from
+-** the standard input.
+-** lua_saveline defines how to "save" a read line in a "history".
+-** lua_freeline defines how to free a line read by lua_readline.
+-*/
+-#if !defined(lua_readline)	/* { */
+-
+-#if defined(LUA_USE_READLINE)	/* { */
+-
+-#include <readline/readline.h>
+-#include <readline/history.h>
+-#define lua_initreadline(L)	((void)L, rl_readline_name="lua")
+-#define lua_readline(L,b,p)	((void)L, ((b)=readline(p)) != NULL)
+-#define lua_saveline(L,line)	((void)L, add_history(line))
+-#define lua_freeline(L,b)	((void)L, free(b))
+-
+-#else				/* }{ */
+-
+-#define lua_initreadline(L)  ((void)L)
+-#define lua_readline(L,b,p) \
+-        ((void)L, fputs(p, stdout), fflush(stdout),  /* show prompt */ \
+-        fgets(b, LUA_MAXINPUT, stdin) != NULL)  /* get line */
+-#define lua_saveline(L,line)	{ (void)L; (void)line; }
+-#define lua_freeline(L,b)	{ (void)L; (void)b; }
+-
+-#endif				/* } */
+-
+-#endif				/* } */
++#include "linenoise/linenoise.h"
++#define lua_initreadline(L)  ((void)L, linenoiseSetMultiLine(1), linenoiseHistorySetMaxLen(10))
++#define lua_readline(L, b, p) ((void)L, ((b) = linenoise(p)) != NULL)
++#define lua_freeline(L, b) ((void)L, linenoiseFree(b))
++#define lua_saveline(L, line) ((void)L, linenoiseHistoryAdd(line))
+ 
+ 
+ /*
+@@ -500,6 +476,7 @@ static int pushline (lua_State *L, int firstline) {
+   else
+     lua_pushlstring(L, b, l);
+   lua_freeline(L, b);
++  lua_writeline();
+   return 1;
+ }
+ 
+@@ -581,7 +558,7 @@ static void l_print (lua_State *L) {
+ ** Do the REPL: repeatedly read (load) a line, evaluate (call) it, and
+ ** print any results.
+ */
+-static void doREPL (lua_State *L) {
++void doREPL (lua_State *L) {
+   int status;
+   const char *oldprogname = progname;
+   progname = NULL;  /* no 'progname' on errors in interactive mode */
+@@ -647,7 +624,7 @@ static int pmain (lua_State *L) {
+ }
+ 
+ 
+-int main (int argc, char **argv) {
++int notmain (int argc, char **argv) {
+   int status, result;
+   lua_State *L = luaL_newstate();  /* create state */
+   if (L == NULL) {
